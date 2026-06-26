@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Car Theory Practice</title>
+    <style>
+        :root {
+            --primary: #005ea5; /* UK Gov Blue */
+            --bg: #f3f2f1;
+            --text: #0b0c0c;
+            --white: #ffffff;
+            --success: #00703c;
+            --error: #d4351c;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: var(--primary);
+            color: var(--white);
+            width: 100%;
+            padding: 20px 0;
+            text-align: center;
+        }
+
+        nav {
+            margin-top: 10px;
+        }
+
+        button.tab-btn {
+            background-color: transparent;
+            color: var(--white);
+            border: 2px solid var(--white);
+            padding: 10px 20px;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        button.tab-btn:hover, button.tab-btn.active {
+            background-color: var(--white);
+            color: var(--primary);
+        }
+
+        .container {
+            background-color: var(--white);
+            max-width: 800px;
+            width: 90%;
+            margin: 30px auto;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        /* Quiz Styles */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .option-btn {
+            padding: 15px;
+            font-size: 16px;
+            background-color: var(--bg);
+            border: 2px solid #b1b4b6;
+            cursor: pointer;
+            text-align: left;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background-color: #cce2d8;
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .option-btn.wrong {
+            background-color: #f6d7d2;
+            border-color: var(--error);
+            color: var(--error);
+        }
+
+        /* Hazard Perception Styles */
+        .video-container {
+            width: 100%;
+            background-color: #000;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            position: relative;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+
+        .flag {
+            position: absolute;
+            color: red;
+            font-size: 24px;
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .action-btn:hover {
+            background-color: #004070;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>UK Driving Theory Practice</h1>
+        <nav>
+            <button class="tab-btn active" onclick="switchTab('theory')">Multiple Choice</button>
+            <button class="tab-btn" onclick="switchTab('hazard')">Hazard Perception</button>
+        </nav>
+    </header>
+
+    <div class="container section active" id="theory">
+        <h2>Mock Theory Questions</h2>
+        <p id="question-text"><strong>Question 1:</strong> What is the national speed limit on a single carriageway for cars?</p>
+        
+        <div class="options">
+            <button class="option-btn" onclick="checkAnswer(this, false)">40 mph</button>
+            <button class="option-btn" onclick="checkAnswer(this, false)">50 mph</button>
+            <button class="option-btn" onclick="checkAnswer(this, true)">60 mph</button>
+            <button class="option-btn" onclick="checkAnswer(this, false)">70 mph</button>
+        </div>
+
+        <div class="controls">
+            <span id="feedback"></span>
+            <button class="action-btn" onclick="resetQuestion()">Next Question (Demo)</button>
+        </div>
+    </div>
+
+    <div class="container section" id="hazard">
+        <h2>Hazard Perception Practice</h2>
+        <p>Click anywhere on the video area when you spot a developing hazard.</p>
+        
+        <div class="video-container" id="hazard-video" onclick="registerClick(event)">
+            [ Placeholder for Hazard Video Clip (e.g., .mp4) ]
+            <span class="flag" id="click-flag">🚩</span>
+        </div>
+
+        <div class="controls">
+            <span>Clicks registered: <strong id="click-count">0</strong></span>
+            <button class="action-btn" onclick="resetHazard()">Reset Video</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // --- Theory Quiz Logic ---
+        function checkAnswer(button, isCorrect) {
+            // Disable all buttons after a choice
+            const buttons = button.parentElement.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const feedbackText = document.getElementById('feedback');
+
+            if (isCorrect) {
+                button.classList.add('correct');
+                feedbackText.innerHTML = "<span style='color: var(--success); font-weight:bold;'>Correct!</span>";
+            } else {
+                button.classList.add('wrong');
+                feedbackText.innerHTML = "<span style='color: var(--error); font-weight:bold;'>Incorrect. The answer is 60 mph.</span>";
+                
+                // Highlight correct answer
+                buttons.forEach(btn => {
+                    if(btn.innerHTML === "60 mph") btn.classList.add('correct');
+                });
+            }
+        }
+
+        function resetQuestion() {
+            // In a real app, this would load the next question from an array
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('correct', 'wrong');
+            });
+            document.getElementById('feedback').innerHTML = "";
+            alert("In a full build, this would load the next question from a JavaScript array!");
+        }
+
+        // --- Hazard Perception Logic ---
+        let clicks = 0;
+        function registerClick(e) {
+            clicks++;
+            document.getElementById('click-count').innerText = clicks;
+            
+            // Show a temporary red flag where clicked
+            const container = document.getElementById('hazard-video');
+            const flag = document.getElementById('click-flag');
+            
+            // Calculate click position relative to the container
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            flag.style.display = 'block';
+            flag.style.left = (x - 12) + 'px'; // -12 to center the flag emoji
+            flag.style.top = (y - 12) + 'px';
+
+            // Hide flag after half a second
+            setTimeout(() => {
+                flag.style.display = 'none';
+            }, 500);
+
+            // In a real app, you would capture: document.getElementById('your-video-id').currentTime
+            console.log("Click registered at simulated timestamp.");
+        }
+
+        function resetHazard() {
+            clicks = 0;
+            document.getElementById('click-count').innerText = clicks;
+        }
+    </script>
+</body>
+</html>
