@@ -207,16 +207,10 @@
             color: white;
             position: relative;
             margin-bottom: 15px;
+            font-size: 18px;
+            text-align: center;
+            box-sizing: border-box;
             overflow: hidden;
-            border-radius: 4px;
-        }
-
-        .flag {
-            position: absolute;
-            color: red;
-            font-size: 24px;
-            display: none;
-            pointer-events: none; /* Prevents flag from blocking future clicks */
         }
         
         .hazard-info {
@@ -238,7 +232,6 @@
         </nav>
     </header>
 
-    <!-- 1. MOCK TEST SELECTION SCREEN -->
     <div class="container section active" id="mock-selection">
         <h2>Choose a Mock Test</h2>
         <p>Select one of the 10 mock tests below. Just like the real DVSA exam, each test is exactly <strong>50 questions long</strong>, requires <strong>43 correct answers to pass</strong>, and gives you a <strong>57-minute time limit</strong>.</p>
@@ -259,7 +252,6 @@
         <button class="action-btn full-width" onclick="startDropdownTest()">Start Selected 50-Question Test</button>
     </div>
 
-    <!-- 2. ACTIVE TEST SCREEN -->
     <div class="container section" id="active-test">
         <div class="test-header">
             <h2 id="active-test-title">Test Name</h2>
@@ -270,8 +262,7 @@
         <p id="question-text" style="font-size: 18px; font-weight: bold;">Question text goes here?</p>
         
         <div class="options" id="options-container">
-            <!-- Options injected here via JS -->
-        </div>
+            </div>
 
         <div class="controls">
             <button class="action-btn" id="prev-btn" onclick="prevQuestion()">Previous</button>
@@ -279,24 +270,20 @@
         </div>
     </div>
 
-    <!-- 3. TEST RESULTS SCREEN -->
     <div class="container section" id="test-results">
         <h2>Test Results</h2>
         <div class="result-summary" id="result-summary">
-            <!-- Score goes here -->
-        </div>
+            </div>
         
         <h3>Questions to Review:</h3>
         <div id="incorrect-answers-container">
-            <!-- Incorrect answers injected here via JS -->
-        </div>
+            </div>
 
         <div class="controls" style="justify-content: center;">
             <button class="action-btn" onclick="returnToMenu()">Return to Mock Tests</button>
         </div>
     </div>
 
-    <!-- 4. HAZARD PERCEPTION SECTION -->
     <div class="container section" id="hazard">
         <h2>Hazard Perception Practice</h2>
         <p>Select a clip. Click anywhere on the video area as soon as you spot a developing hazard.</p>
@@ -310,17 +297,14 @@
         </select>
 
         <div class="hazard-info" id="hazard-description">
-            <!-- Injected via JS -->
-        </div>
+            </div>
         
-        <!-- Video container (YouTube iframe injected inside) -->
         <div class="video-container" id="hazard-video">
-            <!-- Iframe and Overlay injected here via JS -->
-        </div>
+            </div>
 
         <div class="controls">
             <span>Clicks registered: <strong id="click-count">0</strong></span>
-            <button class="action-btn" onclick="resetHazard()">Reset Video / Clicks</button>
+            <button class="action-btn" onclick="resetHazard()">Reset Clicks</button>
         </div>
     </div>
 
@@ -384,7 +368,7 @@
         let currentQuestionIndex = 0;
         let userAnswers = [];
         let timerInterval = null;
-        let timeRemaining = 3420; // 57 minutes
+        let timeRemaining = 3420; // 57 minutes (DVSA standard length)
 
         // --- INITIALIZATION ---
         window.onload = () => {
@@ -403,6 +387,7 @@
             } else if (tab === 'hazard') {
                 document.getElementById('hazard').classList.add('active');
                 document.getElementById('tab-hazard').classList.add('active');
+                loadHazardVideo(); // Reload video frame to prevent background playing
             }
         }
 
@@ -426,6 +411,7 @@
             const selectEl = document.getElementById('mock-test-dropdown');
             const testName = selectEl.options[selectEl.selectedIndex].text;
             
+            // Randomly shuffle the 50 questions so every test feels unique
             currentTestQuestions = shuffleArray(questionBank);
             currentQuestionIndex = 0;
             userAnswers = new Array(50).fill(null);
@@ -439,7 +425,7 @@
 
         function startTimer() {
             clearInterval(timerInterval);
-            timeRemaining = 3420; 
+            timeRemaining = 3420; // 57 mins
             updateTimerDisplay();
 
             timerInterval = setInterval(() => {
@@ -516,6 +502,7 @@
             }
         }
 
+        // --- RESULTS LOGIC ---
         function finishTest() {
             clearInterval(timerInterval);
             let score = 0;
@@ -543,6 +530,7 @@
                 }
             });
 
+            // Standard UK Theory Pass Mark is 43/50
             const passed = score >= 43;
             const passMarkText = passed ? "<strong style='color:var(--success)'>PASSED</strong>" : "<strong style='color:var(--error)'>FAILED</strong>";
             
@@ -563,6 +551,7 @@
         }
 
         // --- HAZARD PERCEPTION LOGIC ---
+        // These use real UK hazard perception practice clips from YouTube
         const hazardDatabase = [
             { 
                 title: "Clip 1: Pedestrian Stepping Out", 
@@ -602,17 +591,19 @@
             const selectedIndex = document.getElementById('hazard-dropdown').value;
             const hazardData = hazardDatabase[selectedIndex];
             
+            // Update Text
             document.getElementById('hazard-description').innerHTML = `<strong>${hazardData.title}</strong><br>${hazardData.desc}`;
             
+            // Inject YouTube iframe with a transparent overlay to capture clicks
             const videoContainer = document.getElementById('hazard-video');
             videoContainer.innerHTML = `
                 <iframe width="100%" height="100%" 
-                    src="https://www.youtube.com/embed/${hazardData.ytId}?start=${hazardData.startAt}&autoplay=1&mute=1&controls=0&rel=0&disablekb=1&modestbranding=1" 
+                    src="https://www.youtube.com/embed/${hazardData.ytId}?start=${hazardData.startAt}&autoplay=0&mute=1&controls=0&rel=0" 
                     frameborder="0" allow="autoplay; encrypted-media" allowfullscreen
                     style="position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none;">
                 </iframe>
-                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; cursor: crosshair;" onclick="registerClick(event)"></div>
-                <span class="flag" id="click-flag" style="z-index: 3;">🚩</span>
+                <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; cursor: pointer;" onclick="registerClick(event)"></div>
+                <span class="flag" id="click-flag" style="position: absolute; z-index: 3; color: red; font-size: 24px; display: none;">🚩</span>
             `;
             
             resetHazard();
@@ -622,15 +613,15 @@
             hazardClicks++;
             document.getElementById('click-count').innerText = hazardClicks;
             
+            const container = document.getElementById('hazard-video');
             const flag = document.getElementById('click-flag');
             
-            // Adjust coordinates based on the click relative to the overlay div
-            const rect = e.target.getBoundingClientRect();
+            const rect = container.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
 
             flag.style.display = 'block';
-            flag.style.left = (x - 12) + 'px'; // -12 to center the emoji
+            flag.style.left = (x - 12) + 'px'; // Center flag on click
             flag.style.top = (y - 12) + 'px';
 
             setTimeout(() => {
@@ -641,8 +632,6 @@
         function resetHazard() {
             hazardClicks = 0;
             document.getElementById('click-count').innerText = hazardClicks;
-            // Reloading the iframe to reset the video timestamp
-            loadHazardVideo();
         }
     </script>
 </body>
